@@ -1,137 +1,107 @@
-# include <stdio.h>
-# include <pthread.h>
+#include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
 
-#define Pthread 4
+#define N 15
+#define nrThread 8    //numarul de threaduri folosit
 
-int MAT1[10][10];
-int MAT2[10][10];
-int MAT3[10][10];
+int matrice_A[500][500];
+int matrice_B[500][500];
+int matrice_Rezultat[500][500];
 
-int l1,c1,l2,c2;
 
-void *Inmultire_Matrici_th(void *parametru)
+//functia care va fi executata de toate thread-urile
+void *Inmultire_Matrici(void *param)
 {
+
+    int id = *(int *)param;
     int i,j,k;
-    for(i=1;i<l1;i=i+2)
+
+    printf("Thread %d start inmultire\n",id);
+    for (i = id; i < N; i+= nrThread)
+    {
+        printf("Thread =%d  LINIE =%d\n",id,i);
+        for(j = 0; j < N; j++)
         {
-            for(j=0;j<c2;j++)
+            for(k = 0; k < N; k++)
             {
-                for(k=0;k<c1;k++)
-                {
-                    MAT3[i][j]+=MAT1[i][k] * MAT2[k][j];
-                }
+                matrice_Rezultat[i][j]+=matrice_A[i][k] * matrice_B[k][j];
             }
         }
-
-    printf("thread terminat\n");
+    }
     pthread_exit(NULL);
+
 }
 
 int main()
 {
-    pthread_t tid;
-    int i,j,k,x;
+    pthread_t thread[nrThread];
+    int tid[nrThread];
 
-    printf(" Introdu numarul de linii matrice 1 :");
-    scanf("%d",&l1);
+	int i, j;
 
-    printf("Introdu numarul de coloane matrice 1:");
-    scanf("%d",&c1);
+    //Initializare matricea A cu valori random 
 
-    for(i=0;i<l1;i++)
+    for(i=0;i<N;i++)
     {
-        for(j=0;j<c1;j++)
+        for(j=0;j<N;j++)
         {
-            printf("Introdu Mat1[%d][%d] :",i,j);
-            scanf("%d",&MAT1[i][j]);
+            matrice_A[i][j] = rand()%10;
         }
     }
 
     printf("\n");
 
-    printf("Introdu numarul de linii matrice 2 :");
-    scanf("%d",&l2);
+    //Initializare matricea B cu valori random 
 
-    printf("Introdu numarul de coloane matrice 2 :");
-    scanf("%d",&c2);
-
-    for(i=0;i<l2;i++)
+    for(i=0;i<N;i++)
     {
-        for(j=0;j<c2;j++)
+        for(j=0;j<N;j++)
         {
-            printf("Introdu  Mat2[%d][%d] :",i,j);
-            scanf("%d",&MAT2[i][j]);
+            matrice_B[i][j] = rand()%10;
         }
     }
 
-    if(c1!=l2)
-    {
-        printf("Inmultirea matricilor nu e posibila !!!");
-    }
-    else
-    {
-        for(i=0;i<l1;i=i+2)
-        {
-            for(j=0;j<c2;j=j+2)
-            {
-                MAT3[i][j]=0;
-            }
-        }
- for(i=0; i<Pthread ; i++){
-        x=pthread_create(&tid,NULL,Inmultire_Matrici_th,NULL); //se creeaza threaduri ce sunt folosite la inmultire
-        if(x==0)
-            printf("Threadul %d a inceput\n",i);
-        else
-            printf("Threadul %d nu a inceput\n",i);
- }
+    //Initializare matrice rezultat cu 0
 
-        for(i=0;i<l1;i=i+2)
+    for(i=0;i<N;i=i+2)
         {
-            for(j=0;j<c2;j++)
+            for(j=0;j<N;j=j+2)
             {
-                for(k=0;k<c1;k++)
-                {
-                    MAT3[i][j]+=MAT1[i][k] * MAT2[k][j];
-                }
+                matrice_Rezultat[i][j]=0;
             }
         }
 
-        pthread_join(tid,NULL); //asteapta pana se termina de executat toate threadurile
-    }
+        for (i = 0; i < nrThread; i++) {
 
-    printf("\n Matrix 1 \n");
+            tid[i]=i;
+            pthread_create(&thread[i], NULL, Inmultire_Matrici, &tid[i]);
 
-    for(i=0;i<l1;i++)
-    {
-        for(j=0;j<c1;j++)
-        {
-            printf("%d \t",MAT1[i][j]);
+
         }
-        printf("\n");
-    }
 
-    printf("\n Matrix 2 \n");
-
-    for(i=0;i<l2;i++)
-    {
-        for(j=0;j<c2;j++)
+        for (i = 0; i < nrThread; i++)
         {
-            printf("%d \t",MAT2[i][j]);
+            pthread_join(thread[i], NULL);
         }
-        printf("\n");
-    }
 
-    printf("\n Multipication of Matrix ...\n");
 
-    for(i=0;i<l1;i++)
-    {
-        for(j=0;j<c2;j++)
+    //Afisam rezultatul
+
+        printf("\n Rezultatul inmultiri matricilor A si B : \n");
+
+        for(i=0;i<N;i++)
         {
-            printf("%d \t",MAT3[i][j]);
+            for(j=0;j<N;j++)
+            {
+                printf("%d \t",matrice_Rezultat[i][j]);
+            }
+            printf("\n");
         }
-        printf("\n");
-    }
-    return 0;
+
+	return 0;
+
+
 }
 
 
