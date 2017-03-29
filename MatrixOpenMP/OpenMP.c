@@ -6,9 +6,9 @@
 
 
 
-#define n 100
-#define p 100
-#define m 100
+#define n 4
+#define p 7
+#define m 9
 
 #define THREADS 4
 
@@ -20,7 +20,7 @@ float c[n][m];
 
 
 int main() {
-    int t;
+    time_t t;
     srand((unsigned) time(&t)); //Intializes random number generator
 
     unsigned long i,j,k;
@@ -44,7 +44,7 @@ int main() {
 
 #pragma omp parallel shared(a,b,c) private(i,j,k) //a,c,b are shared among the threads & i,j,k are private to each threads
 {
-    #pragma omp for schedule (static) num_threads(THREADS) //static-Divide the loop into equal-sized chunks
+    #pragma omp for schedule (static) //static-Divide the loop into equal-sized chunks
      for(i=0; i<n; i++) {
         for(j=0; j<m ; j++) {
             for(k=0; k<p; k++) {
@@ -60,7 +60,7 @@ printf("\n Multipication of Matrix ...\n");
     {
         for(j=0;j<m;j++)
         {
-            printf("%f \t",c[i][j]);
+            printf("%.2f \t",c[i][j]);
         }
         printf("\n");
     }
